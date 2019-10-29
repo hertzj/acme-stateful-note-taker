@@ -71,9 +71,15 @@ class App extends Component {
             <HashRouter>
                 <Route render = {props => <Nav {...props} notes = { notes } archived = { archived } />} />
                 <Switch>
-                    <Route path='/notes' render = {props => <Notes {...props} user = {user} notes = {notes} archived = {archived} updateDestroy = {this.updateDestroy} updateArchive = {this.updateArchive} update = {this.update}/>}/>
-                    <Route path='/archive' render = {props => <Archive {...props} user = {user} notes = {notes} archived = {archived} updateArchive = {this.updateArchive} update = {this.update} updateDestroy = {this.updateDestroy} />}/>
-                    <Route path='/create' render = {props => <CreateNote {...props} user = {user} notes = {notes} archived = {archived} update = {this.update} />}/>
+                    <Route path='/notes'
+                        render = {props =>
+                            <Notes {...props} user = {user} notes = {notes} archived = {archived} updateDestroy = {this.updateDestroy} updateArchive = {this.updateArchive} update = {this.update}/>}/>
+                    <Route path='/archive'
+                        render = {props =>
+                            <Archive {...props} user = {user} notes = {notes} archived = {archived} updateArchive = {this.updateArchive} update = {this.update} updateDestroy = {this.updateDestroy} />}/>
+                    <Route path='/create'
+                        render = {props =>
+                            <CreateNote {...props} user = {user} notes = {notes} archived = {archived} update = {this.update} />}/>
                     <Redirect to='/notes' />
                 </Switch>
             </HashRouter>
@@ -96,13 +102,15 @@ const Nav = ({location, archived}) => {
 // 'https://acme-users-api-rev.herokuapp.com/api';
 // eslint-disable-next-line react/no-multi-comp
 class CreateNote extends Component {
-    constructor({user, update, notes}) {
+    constructor({user, update, notes, archived}) {
         super();
         this.state = {
             user,
             note: '',
             notes,
             update,
+            archived,
+            status: false,
         }
     }
 
@@ -112,6 +120,12 @@ class CreateNote extends Component {
 
     handleSubmit = async ev => {
         ev.preventDefault()
+        if ((this.state.notes.length + this.state.archived.length) > 4) {
+            this.setState({status: true})
+        }
+        else if ((this.state.notes.length + this.state.archived.length) < 5) {
+            this.setState({status: false})
+        }
         const newNote = await axios.post(`${API}/users/${this.state.user.id}/notes`, {text: this.state.note});
         const newNoteData = newNote.data
         const { notes } = this.state;
@@ -123,12 +137,14 @@ class CreateNote extends Component {
         const input = document.querySelector('input');
         input.value = '';
         
+        
     }
 
     render() {
         return (
             <form onSubmit = {this.handleSubmit}>
                 <h1>Acme Note -- taker for {this.state.user.fullName}</h1>
+                {this.state.status && (<span>A user can create at most 5 notes</span>)}
                 <input name='note' type="text" onChange = {this.handleChange}/>
                 <button>Create</button>
             </form>
