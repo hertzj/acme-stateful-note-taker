@@ -1,13 +1,7 @@
 const root = document.getElementById('root');
-
 const { Component } = React;
 const { HashRouter, Route, Link, Switch, Redirect } = ReactRouterDOM;
-
-
-
 const API = 'https://acme-users-api-rev.herokuapp.com/api';
-
-
 
 class App extends Component {
     constructor() {
@@ -97,7 +91,6 @@ const Nav = ({location, archived, notes}) => {
         </nav>
     )
 }
-
 
 // 'https://acme-users-api-rev.herokuapp.com/api';
 // eslint-disable-next-line react/no-multi-comp
