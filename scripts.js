@@ -52,11 +52,11 @@ class App extends Component {
         
     }
 
-    componentDidUpdate() {
-        this.render()
-    }
+    // componentDidUpdate() {
+    //     this.render()
+    // }
 
-    update = (note) => {
+    update = (newNotes) => {
         // // console.log('before update: ', this.state.notes)
         // const oldNotes = this.state.notes;
         // // console.log('note is:', note)
@@ -66,9 +66,13 @@ class App extends Component {
         // // this.setState({notes})
         // // console.log('after update: ', this.state.notes)
 
-        const { notes } = this.state;
-        notes.push(note);
-        this.setState({notes});
+        // old - it took in a single note
+        // const { notes } = this.state;
+        // notes.push(note);
+        // this.setState({notes});
+
+        this.setState({notes: newNotes});
+
     }
 
     updateDestroy = (notes) => {
@@ -77,10 +81,6 @@ class App extends Component {
     }
 
     updateArchive = (newArchive) => {
-        // const oldArchive = this.state.archived;
-        // const archived = oldArchive.push(archivedNote);
-        // this.setState({archived: archived}) // just uncommented htis
-
         // below works for just adding an individual archived note  - have f'n take in archivedNote
         // const { archived } = this.state;
         // archived.push(archivedNote);
@@ -95,9 +95,10 @@ class App extends Component {
             <HashRouter>
                 <Route render = {props => <Nav {...props} notes = { notes } archived = { archived } />} />
                 <Switch>
-                    <Route path='/notes' render = {props => <Notes {...props} user = {user} notes = {notes} archived = {archived} updateDestroy = {this.updateDestroy} updateArchive = {this.updateArchive} />}/>
-                    <Route path='/archive' render = {props => <Archive {...props} user = {user} notes = {notes} archived = {archived} />}/>
+                    <Route path='/notes' render = {props => <Notes {...props} user = {user} notes = {notes} archived = {archived} updateDestroy = {this.updateDestroy} updateArchive = {this.updateArchive} update = {this.update}/>}/>
+                    <Route path='/archive' render = {props => <Archive {...props} user = {user} notes = {notes} archived = {archived} updateArchive = {this.updateArchive} update = {this.update} updateDestroy = {this.updateDestroy} />}/>
                     <Route path='/create' render = {props => <CreateNote {...props} user = {user} notes = {notes} archived = {archived} update = {this.update} />}/>
+                    <Redirect to='/notes' />
                 </Switch>
             </HashRouter>
         )
@@ -114,14 +115,17 @@ const Nav = ({location, archived}) => {
         </nav>
     )
 }
+
+
 // 'https://acme-users-api-rev.herokuapp.com/api';
 // eslint-disable-next-line react/no-multi-comp
 class CreateNote extends Component {
-    constructor({user, update}) {
+    constructor({user, update, notes}) {
         super();
         this.state = {
             user,
             note: '',
+            notes,
             update,
         }
     }
@@ -133,16 +137,29 @@ class CreateNote extends Component {
     handleSubmit = async ev => {
         ev.preventDefault()
         // console.log(this.state.user)
+        // below is old
+        // const newNote = await axios.post(`${API}/users/${this.state.user.id}/notes`, {text: this.state.note});
+        // const newTextNote = newNote.data
+        // this.state.update(newTextNote);
+
+        // and here is new
         const newNote = await axios.post(`${API}/users/${this.state.user.id}/notes`, {text: this.state.note});
-        const newTextNote = newNote.data
-        this.state.update(newTextNote);
+        const newNoteData = newNote.data
+        const { notes } = this.state;
+
+        notes.push(newNoteData);
+
+        this.setState({notes})
+        this.state.update(notes);
+        const input = document.querySelector('input');
+        input.value = '';
         
     }
 
     render() {
         return (
             <form onSubmit = {this.handleSubmit}>
-                <h1>Acme Note -- taker for {this.state.user.fullName} - fix later</h1>
+                <h1>Acme Note -- taker for {this.state.user.fullName}</h1>
                 <input name='note' type="text" onChange = {this.handleChange}/>
                 <button>Create</button>
             </form>
@@ -152,7 +169,7 @@ class CreateNote extends Component {
 
 // eslint-disable-next-line react/no-multi-comp
 class Notes extends Component {
-    constructor({notes, user, archived, updateDestroy, updateArchive}) {
+    constructor({notes, user, archived, updateDestroy, updateArchive, update}) {
         super();
         this.state = {
             user,
@@ -161,6 +178,7 @@ class Notes extends Component {
             archived,
             updateDestroy,
             updateArchive,
+            update,
         }
     }
 
@@ -206,6 +224,7 @@ class Notes extends Component {
         const { archived } = this.state;
         archived.push(archivedNoteData);
         const notes = this.state.notes.filter(note=> note.id !== id);
+        this.state.update(notes);
         this.state.updateArchive(archived);
         this.setState({
             notes,
@@ -237,12 +256,15 @@ class Notes extends Component {
 
 // eslint-disable-next-line react/no-multi-comp
 class Archive extends Component {
-    constructor({archived, user}) {
+    constructor({archived, user, updateArchive, notes, update}) {
         super();
         this.state = {
             user,
+            notes,
             archived,
             archivedText: [],
+            updateArchive,
+            update,
         }
     }
 
@@ -258,19 +280,38 @@ class Archive extends Component {
 
     destroy = async (id, ev) => {
         const remove = await axios.delete(`${API}/users/${this.state.user.id}/notes/${id}`);
-        const archived = this.state.archived.filter(note => note.id !== id);
-        this.setState({archived})
+        const { archived } = this.state
+        const newArchive = archived.filter(note => note.id !== id);
+        this.setState({archived: newArchive})
+        this.state.updateArchive(newArchive)
+    }
+
+    unArchive = async id => {
+        const archivedNote = await axios.put(`${API}/users/${this.state.user.id}/notes/${id}`, {archived: false});
+        const archivedNoteData = archivedNote.data;
+
+        const { archived } = this.state;
+        const newArchive = archived.filter(note => note.id !== id);
+        this.setState({archived: newArchive});
+        this.state.updateArchive(newArchive);
+
+        const { notes } = this.state;
+        notes.push(archivedNoteData);
+        this.state.update(notes)
+        this.setState({
+            notes,
+        })
     }
 
     render() {
         return (
             <div>
-                <h1>Acme Note -- taker for {this.state.user.fullName} - fix later</h1>
+                <h1>Acme Note -- taker for {this.state.user.fullName}</h1>
                 <ul>
                     {this.state.archived.map((note, idx) => {
                     return (
                         <li key={idx}>{note.text}
-                            <button>unarchive</button>
+                            <button onClick={() => this.unArchive(note.id)}>unarchive</button>
                             <button onClick={() => this.destroy(note.id)}>destroy</button>
                         </li>
                         )}
