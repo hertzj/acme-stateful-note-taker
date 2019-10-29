@@ -52,40 +52,16 @@ class App extends Component {
         
     }
 
-    // componentDidUpdate() {
-    //     this.render()
-    // }
 
     update = (newNotes) => {
-        // // console.log('before update: ', this.state.notes)
-        // const oldNotes = this.state.notes;
-        // // console.log('note is:', note)
-        // // console.log('oldNotes', oldNotes)
-        // const notes = oldNotes.push(note)
-        // // console.log('notes', notes)
-        // // this.setState({notes})
-        // // console.log('after update: ', this.state.notes)
-
-        // old - it took in a single note
-        // const { notes } = this.state;
-        // notes.push(note);
-        // this.setState({notes});
-
         this.setState({notes: newNotes});
-
     }
 
     updateDestroy = (notes) => {
         this.setState({notes})
-        // console.log(this.state.notes)
     }
 
     updateArchive = (newArchive) => {
-        // below works for just adding an individual archived note  - have f'n take in archivedNote
-        // const { archived } = this.state;
-        // archived.push(archivedNote);
-        // this.setState({archived})
-
         this.setState({archived: newArchive})
     }
 
@@ -136,13 +112,6 @@ class CreateNote extends Component {
 
     handleSubmit = async ev => {
         ev.preventDefault()
-        // console.log(this.state.user)
-        // below is old
-        // const newNote = await axios.post(`${API}/users/${this.state.user.id}/notes`, {text: this.state.note});
-        // const newTextNote = newNote.data
-        // this.state.update(newTextNote);
-
-        // and here is new
         const newNote = await axios.post(`${API}/users/${this.state.user.id}/notes`, {text: this.state.note});
         const newNoteData = newNote.data
         const { notes } = this.state;
@@ -174,7 +143,6 @@ class Notes extends Component {
         this.state = {
             user,
             notes,
-            // notesText: [],
             archived,
             updateDestroy,
             updateArchive,
@@ -189,12 +157,6 @@ class Notes extends Component {
         this.setState({notesText})
     }
 
-
-    handleSubmit = ev => {
-        ev.preventdefault()
-        // add functionality for each button later
-    }
-
     destory = async (id, ev) => {
         const remove = await axios.delete(`${API}/users/${this.state.user.id}/notes/${id}`)
         const notes = this.state.notes.filter(note=> note.id !== id);
@@ -202,24 +164,11 @@ class Notes extends Component {
         this.setState({
             notes,
         })
-        // console.log(this.state.notes)
     }
 
     archive = async (id) => {
-        // const archived = await axios.put(`${API}/users/${this.state.user.id}/notes/${id}`, {archived: true});
-        // const archivedNote = archived.data;
-        // const notes = this.state.notes.filter(note=> note.id !== id);
-        // this.state.updateArchive(archivedNote)
-        // this.setState({
-        //     notes,
-        // }) // the above is the old
         const archivedNote = await axios.put(`${API}/users/${this.state.user.id}/notes/${id}`, {archived: true});
         const archivedNoteData = archivedNote.data;
-        // const notes = this.state.notes.filter(note=> note.id !== id);
-        // this.state.updateArchive(archivedNoteData)
-        // this.setState({
-        //     notes,
-        // })
 
         const { archived } = this.state;
         archived.push(archivedNoteData);
@@ -262,20 +211,9 @@ class Archive extends Component {
             user,
             notes,
             archived,
-            archivedText: [],
             updateArchive,
             update,
         }
-    }
-
-    componentDidMount() {
-        // const archivedText = this.state.archived.map(note => note.text);
-        // this.setState({archivedText})
-    }
-
-    handleSubmit = ev => {
-        ev.preventdefault()
-        
     }
 
     destroy = async (id, ev) => {
