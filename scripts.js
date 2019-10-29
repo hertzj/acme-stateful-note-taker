@@ -87,11 +87,11 @@ class App extends Component {
     }
 }
 
-const Nav = ({location, archived}) => {
+const Nav = ({location, archived, notes}) => {
     const {pathname} = location
     return (
         <nav>
-            <Link to='notes' className = { pathname === '/notes' ? 'selected' : '' }>Notes</Link>
+            <Link to='notes' className = { pathname === '/notes' ? 'selected' : '' }>Notes ({notes.length})</Link>
             <Link to='archive' className = { pathname === '/archive' ? 'selected' : '' }>Archived ({archived.length})</Link>
             <Link to='create' className = { pathname === '/create' ? 'selected' : '' }>Create</Link>
         </nav>

@@ -1,0 +1,28 @@
+nav {
+    display: flex;
+    justify-content: space-around;
+}
+
+.selected {
+    background-color: tomato;
+    color: white;
+    border-radius: 15px;
+}
+
+nav a {
+    text-decoration: none;
+    color: black;
+    padding: 1em;
+}
+
+li {
+    display: flex;
+    flex-direction: column;
+    width: 8%;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+}
